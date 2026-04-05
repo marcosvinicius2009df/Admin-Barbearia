@@ -134,12 +134,22 @@
 
             <div id="view-clientes-colab" class="view-section">
                 <div class="card">
-                    <h3 style="margin-bottom: 20px;">Meus Clientes Frequentes</h3>
-                    <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">Aqui fica o registro de todos os clientes que já cortaram o cabelo com você. Use para conhecê-los melhor!</p>
+                    <h3 style="margin-bottom: 20px;">Gestão de Clientes (CRM & Fidelização)</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">Acompanha a frequência dos teus clientes. O sistema conta automaticamente os cortes concluídos. Clientes com 5 ou mais cortes ganham o selo VIP! 🌟</p>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>Nome do Cliente</th><th>Último Serviço</th><th>Data do Último Corte</th></tr></thead>
-                            <tbody id="tb-meus-clientes"><tr><td colspan="3" style="text-align: center;">Carregando histórico...</td></tr></tbody>
+                            <thead>
+                                <tr>
+                                    <th>Nome do Cliente</th>
+                                    <th>WhatsApp</th>
+                                    <th>Data de Registo</th>
+                                    <th style="text-align: center;">Cortes Realizados</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tb-clientes">
+                                <tr><td colspan="5" style="text-align: center;">A carregar base de dados...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -170,18 +180,45 @@
             <div id="view-dashboard" class="view-section admin-only">
                 <div class="grid-cards" style="grid-template-columns: repeat(4, 1fr);">
                     <div class="card stat-card" style="padding: 20px;">
-                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">FATURAMENTO HOJE</h3><div class="value" id="dash-fat" style="font-size: 1.5rem; color: var(--success);">R$ 0,00</div></div>
+                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">FATURAMENTO BRUTO</h3><div class="value" id="dash-fat" style="font-size: 1.5rem; color: var(--success);">R$ 0,00</div></div>
                     </div>
-                    <div class="card stat-card" style="padding: 20px;">
-                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">TICKET MÉDIO</h3><div class="value" id="dash-ticket" style="font-size: 1.5rem;">R$ 0,00</div></div>
+                    <div class="card stat-card" style="padding: 20px; border-color: var(--danger);">
+                        <div><h3 style="font-size: 0.75rem; color: var(--danger);">DESPESAS / CUSTOS</h3><div class="value" id="dash-despesas" style="font-size: 1.5rem; color: var(--danger);">R$ 0,00</div></div>
                     </div>
-                    <div class="card stat-card" style="padding: 20px; border-color: var(--primary);">
-                        <div><h3 style="font-size: 0.75rem; color: var(--primary);">ESTIMATIVA PENDENTE</h3><div class="value" id="dash-projecao" style="font-size: 1.5rem; color: var(--primary);">R$ 0,00</div></div>
+                    <div class="card stat-card" style="padding: 20px; border-color: var(--primary); background: rgba(212, 175, 55, 0.05);">
+                        <div><h3 style="font-size: 0.75rem; color: var(--primary);">LUCRO LÍQUIDO</h3><div class="value" id="dash-lucro" style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">R$ 0,00</div></div>
                     </div>
                     <div class="card stat-card" style="padding: 20px;">
                         <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">TOTAL DE CLIENTES</h3><div class="value" id="dash-cli" style="font-size: 1.5rem;">0</div></div>
                     </div>
                 </div>
+
+                <div class="grid-cards" style="grid-template-columns: 2fr 1fr;">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                    <button class="btn-action" style="background: var(--bg-surface-hover); color: var(--text-title); border: 1px solid var(--border);" onclick="exportarRelatorioCSV()">
+                        <i class="fa-solid fa-file-export"></i> Exportar Relatório (CSV)
+                    </button>
+                </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--danger); border-bottom: 1px solid var(--border); padding-bottom: 10px;">Lançar Despesa</h3>
+                        <div class="form-group">
+                            <label>Descrição do Gasto</label>
+                            <input type="text" id="add-desp-desc" placeholder="Ex: Conta de Luz, Pomadas...">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor (R$)</label>
+                            <input type="number" id="add-desp-valor" placeholder="Ex: 150.00">
+                        </div>
+                        <button class="btn-action" style="width: 100%; justify-content: center; background: var(--danger); color: white; border: none;" onclick="cadastrarDespesa()">
+                            <i class="fa-solid fa-arrow-trend-down"></i> Registar Saída
+                        </button>
+                        
+                        <h4 style="margin-top: 20px; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-muted);">Últimas Despesas</h4>
+                        <div id="lista-despesas" style="max-height: 120px; overflow-y: auto; font-size: 0.85rem;">
+                            </div>
+                    </div>
+                </div>
+            </div>
 
                 <div class="grid-cards" style="grid-template-columns: 2fr 1fr;">
                     <div class="card">
@@ -233,11 +270,22 @@
                         <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Novo Produto</h3>
                         <div class="form-group"><label>Nome do Produto</label><input type="text" id="add-prod-nome" placeholder="Ex: Pomada Modeladora"></div>
                         <div class="form-group"><label>Preço (R$)</label><input type="number" id="add-prod-preco" placeholder="45.00"></div>
+                        <div class="form-group"><label>Quantidade Inicial (Estoque)</label><input type="number" id="add-prod-estoque" placeholder="Ex: 10" value="0"></div>
                         <div class="form-group"><label>URL da Imagem</label><input type="text" id="add-prod-img" placeholder="https://link-da-imagem.jpg"></div>
                         <button class="btn-action" style="width:100%; justify-content:center;" onclick="cadastrarProduto()"><i class="fa-solid fa-box"></i> Adicionar à Loja</button>
                     </div>
                     <div class="card table-container" style="padding: 0;">
-                        <table><thead><tr><th>Produto</th><th>Preço</th><th>Ação</th></tr></thead><tbody id="tb-produtos"></tbody></table>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Preço</th>
+                                    <th>Estoque Atual</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tb-produtos"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>

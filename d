@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLukas Backoffice PRO</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-body: #232333; --bg-card: #2b2c40; --primary: #d4af37; --text-main: #cbcbe2; 
+            --text-muted: #7a7b97; --border: #444564; --success: #71dd37; --danger: #ff3e1d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Public Sans', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; }
+
+        /* LOGIN PRO */
+        #tela-login { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #1a1a27; }
+        .login-box { background: var(--bg-card); padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); width: 100%; max-width: 400px; text-align: center; }
+        .login-box input { width: 100%; padding: 15px; margin: 10px 0; background: var(--bg-body); border: 1px solid var(--border); color: white; border-radius: 8px; outline: none; transition: 0.3s; }
+        .login-box input:focus { border-color: var(--primary); }
+        .login-box button { width: 100%; padding: 15px; background: var(--primary); color: #000; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .login-box button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* PAINEL E SIDEBAR */
+        #painel-app { display: none; height: 100vh; }
+        .sidebar { width: 260px; background-color: var(--bg-card); display: flex; flex-direction: column; border-right: 1px solid var(--border); height: 100vh; position: fixed; overflow-y: auto; }
+        .sidebar-logo { padding: 25px 20px; font-size: 1.4rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .sidebar-logo i { color: var(--primary); font-size: 1.8rem; }
+        
+        .menu-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin: 20px 20px 5px 20px; font-weight: 600; }
+        .menu-item { padding: 12px 20px; margin: 5px 15px; border-radius: 8px; cursor: pointer; color: var(--text-main); transition: 0.2s; display: flex; align-items: center; gap: 15px; font-size: 0.95rem; }
+        .menu-item:hover { background-color: rgba(212, 175, 55, 0.08); color: var(--primary); }
+        .menu-item.ativo { background-color: rgba(212, 175, 55, 0.15); color: var(--primary); font-weight: 600; }
+        .admin-only { display: none; } /* Esconde menus do dono por padrão */
+
+        /* CONTEÚDO PRINCIPAL */
+        .main-content { margin-left: 260px; padding: 20px 30px; flex: 1; min-height: 100vh; }
+        .topbar { background: var(--bg-card); padding: 15px 25px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .secao { display: none; animation: fadeUp 0.4s ease; }
+        .secao.ativa { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* CARDS E GRIDS */
+        .row { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 300px; }
+        .card { background: var(--bg-card); padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        
+        .metric-card { display: flex; align-items: center; gap: 20px; }
+        .metric-icon { width: 55px; height: 55px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; background: rgba(212,175,55,0.15); color: var(--primary); }
+
+        /* TABELAS */
+        table { width: 100%; border-collapse: collapse; text-align: left; margin-top: 15px; }
+        th { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; padding: 15px 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 15px 10px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        .btn-acao { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; margin-right: 10px; transition: 0.2s; }
+        .btn-check { color: var(--success); } .btn-trash { color: var(--danger); }
+        .btn-acao:hover { transform: scale(1.2); }
+
+        /* INPUTS INTERNOS */
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-group input { flex: 1; padding: 12px; background: var(--bg-body); border: 1px solid var(--border); color: white; border-radius: 8px; outline: none; }
+        .btn-salvar { padding: 12px 25px; background: var(--primary); color: #000; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="tela-login">
+        <div class="login-box">
+            <i class="fa-solid fa-scissors" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+            <h2 style="color: white; margin-bottom: 5px;">JLukas Admin</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px;">Painel de Gestão Exclusivo</p>
+            <input type="email" id="email-admin" placeholder="E-mail de Acesso">
+            <input type="password" id="senha-admin" placeholder="Senha">
+            <button onclick="entrarAdmin()">ACESSAR</button>
+        </div>
+    </div>
+
+    <div id="painel-app">
+        <div class="sidebar">
+            <div class="sidebar-logo"><i class="fa-solid fa-scissors"></i> JLukas PRO</div>
+            
+            <div class="menu-title">Atendimento</div>
+            <div class="menu-item ativo" onclick="mudarAba('aba-agenda', this)"><i class="fa-solid fa-calendar-check"></i> Minha Agenda</div>
+            
+            <div class="admin-only">
+                <div class="menu-item" onclick="mudarAba('aba-clientes', this)"><i class="fa-solid fa-users"></i> Clientes (CRM)</div>
+            </div>
+            
+            <div class="admin-only">
+                <div class="menu-title">Gestão e Relatórios</div>
+                <div class="menu-item" onclick="mudarAba('aba-dashboard', this)"><i class="fa-solid fa-chart-pie"></i> Visão Geral</div>
+                <div class="menu-item" onclick="mudarAba('aba-produtos', this)"><i class="fa-solid fa-box"></i> Loja / Estoque</div>
+                <div class="menu-item" onclick="mudarAba('aba-espera', this)"><i class="fa-solid fa-hourglass-half"></i> Fila de Espera</div>
+                <div class="menu-item" onclick="mudarAba('aba-feedbacks', this)"><i class="fa-solid fa-star"></i> Avaliações</div>
+                
+                <div class="menu-title">Configurações</div>
+                <div class="menu-item" onclick="mudarAba('aba-bloqueio', this)"><i class="fa-solid fa-calendar-xmark"></i> Fechar Agenda</div>
+                <div class="menu-item" onclick="mudarAba('aba-config', this)"><i class="fa-solid fa-users-gear"></i> Equipe e Serviços</div>
+            </div>
+            
+            <div style="margin-top: auto; padding-bottom: 20px;">
+                <div class="menu-item" style="color: var(--danger);" onclick="auth.signOut()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair do Sistema</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <div>
+                    <h3 style="color: white;" id="txt-boas-vindas">Carregando...</h3>
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span id="txt-cargo" style="background: rgba(212,175,55,0.2); color: var(--primary); padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">Cargo</span>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=d4af37&color=000" style="border-radius: 50%; width: 40px;">
+                </div>
+            </div>
+
+            <div id="aba-agenda" class="secao ativa">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Próximos Cortes</h3>
+                    <table>
+                        <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Serviço</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody id="tabela-agendamentos"><tr><td colspan="5">Carregando...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="aba-clientes" class="secao">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Gestão de Clientes (CRM)</h3>
+                    <table>
+                        <thead><tr><th>Nome</th><th>WhatsApp</th><th>Data de Cadastro</th><th>Ações</th></tr></thead>
+                        <tbody id="tabela-clientes"><tr><td colspan="4">Carregando...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="aba-dashboard" class="secao">
+                <div class="row">
+                    <div class="col card metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                        <div><p style="color:var(--text-muted); font-size:0.85rem;">Faturamento Bruto</p><h2 id="dash-fat" style="color:white;">R$ 0,00</h2></div>
+                    </div>
+                    <div class="col card metric-card">
+                        <div class="metric-icon" style="background: rgba(113,221,55,0.15); color: var(--success);"><i class="fa-solid fa-users"></i></div>
+                        <div><p style="color:var(--text-muted); font-size:0.85rem;">Total de Clientes</p><h2 id="dash-cli" style="color:white;">0</h2></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Volume de Atendimentos</h3>
+                    <canvas id="graficoAgendamentos" height="80"></canvas>
+                </div>
+            </div>
+
+            <div id="aba-produtos" class="secao">
+                <div class="row">
+                    <div class="col card">
+                        <h3 style="margin-bottom: 15px;">📦 Adicionar Produto à Loja</h3>
+                        <div class="input-group">
+                            <input type="text" id="prod-nome" placeholder="Nome do Produto">
+                            <input type="number" id="prod-preco" placeholder="Preço (R$)">
+                        </div>
+                        <input type="text" id="prod-img" placeholder="URL da Imagem da Web" style="width:100%; padding:12px; margin-bottom:15px; background:var(--bg-body); border:1px solid var(--border); color:white; border-radius:8px;">
+                        <button class="btn-salvar" style="width:100%;" onclick="salvarProdutoLoja()">Cadastrar Produto</button>
+                    </div>
+                    <div class="col card">
+                        <h3 style="margin-bottom: 15px;">Vitrine da Loja Atual</h3>
+                        <div id="lista-produtos-loja"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="aba-espera" class="secao">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Clientes Aguardando Vaga</h3>
+                    <table>
+                        <thead><tr><th>Data Desejada</th><th>Cliente</th><th>WhatsApp</th><th>Ações</th></tr></thead>
+                        <tbody id="tabela-espera"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="aba-feedbacks" class="secao">
+                <div class="row" id="lista-feedbacks"></div>
+            </div>
+
+            <div id="aba-bloqueio" class="secao">
+                <div class="card">
+                    <h3 style="margin-bottom: 15px;">Impedir Agendamentos (Feriados/Folgas)</h3>
+                    <div class="input-group">
+                        <input type="date" id="data-block">
+                        <button class="btn-salvar" onclick="salvarBloqueio()">Bloquear Dia</button>
+                    </div>
+                    <div id="lista-bloqueios" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
+            <div id="aba-config" class="secao">
+                <div class="row">
+                    <div class="col card">
+                        <h3 style="margin-bottom: 15px;">💈 Adicionar Barbeiro</h3>
+                        <div class="input-group">
+                            <input type="text" id="barb-nome" placeholder="Nome">
+                            <input type="text" id="barb-img" placeholder="URL da Foto">
+                        </div>
+                        <button class="btn-salvar" style="width:100%;" onclick="salvarBarbeiro()">Salvar Barbeiro</button>
+                        <div id="lista-barbeiros-admin" style="margin-top:20px;"></div>
+                    </div>
+                    <div class="col card">
+                        <h3 style="margin-bottom: 15px;">✂️ Adicionar Serviço</h3>
+                        <div class="input-group">
+                            <input type="text" id="serv-nome" placeholder="Nome do Serviço">
+                            <input type="number" id="serv-preco" placeholder="Preço (Ex: 35.00)">
+                        </div>
+                        <input type="text" id="serv-desc" placeholder="Descrição" style="width:100%; padding:12px; margin-bottom:15px; background:var(--bg-body); border:1px solid var(--border); color:white; border-radius:8px;">
+                        <button class="btn-salvar" style="width:100%;" onclick="salvarServico()">Salvar Serviço</button>
+                        <div id="lista-servicos-admin" style="margin-top:20px;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🚀 INICIALIZAÇÃO DO FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDy1-E_o45AuAbfyzNd8Qg6qS-d-pCFExM",
+            authDomain: "barbearia-do-marcos.firebaseapp.com",
+            databaseURL: "https://barbearia-do-marcos-default-rtdb.firebaseio.com",
+            projectId: "barbearia-do-marcos"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        // ==========================================
+        // LÓGICA DO PAINEL
+        // ==========================================
+        const EMAIL_DONO = "donobarbearia@gmail.com"; // <--- COLOQUE O E-MAIL DO DONO AQUI
+        let usuarioAtual = null;
+        let meuGrafico = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                usuarioAtual = user;
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('painel-app').style.display = 'flex';
+                
+                const isAdmin = (user.email === EMAIL_DONO);
+                
+                if (isAdmin) {
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+                    document.getElementById('txt-boas-vindas').innerText = "Bem-vindo de volta, Boss!";
+                    document.getElementById('txt-cargo').innerText = "Administrador";
+                    carregarMetricas();
+                    carregarEspera();
+                    carregarFeedbacks();
+                    carregarBloqueios();
+                    carregarConfiguracoes();
+                    carregarClientes(); // NOVO: CRM
+                    carregarProdutosLoja(); // NOVO: Estoque
+                } else {
+                    document.getElementById('txt-boas-vindas').innerText = "Olá, " + user.email.split('@')[0];
+                    document.getElementById('txt-cargo').innerText = "Barbeiro";
+                }
+                
+                carregarAgenda(isAdmin, user.email);
+            } else {
+                document.getElementById('tela-login').style.display = 'flex';
+                document.getElementById('painel-app').style.display = 'none';
+            }
+        });
+
+        function entrarAdmin() {
+            const email = document.getElementById('email-admin').value;
+            const senha = document.getElementById('senha-admin').value;
+            auth.signInWithEmailAndPassword(email, senha).catch(err => alert("Erro: " + err.message));
+        }
+
+        function mudarAba(id, el) {
+            document.querySelectorAll('.secao').forEach(s => s.classList.remove('ativa'));
+            document.getElementById(id).classList.add('ativa');
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('ativo'));
+            el.classList.add('ativo');
+        }
+
+        // ==========================================
+        // AGENDA E FINANCEIRO (NOVO: FORMA DE PAGAMENTO)
+        // ==========================================
+        function carregarAgenda(isAdmin, emailLogado) {
+            database.ref('agendamentos').on('value', snap => {
+                const tbody = document.getElementById('tabela-agendamentos');
+                tbody.innerHTML = "";
+                if(!snap.exists()) { tbody.innerHTML = "<tr><td colspan='5'>Nenhum agendamento.</td></tr>"; return; }
+                
+                let lista = [];
+                snap.forEach(c => lista.push({ key: c.key, ...c.val() }));
+                lista.reverse();
+
+                lista.forEach(ag => {
+                    if (isAdmin || (ag.barbeiro && ag.barbeiro.toLowerCase().includes(emailLogado.split('@')[0].toLowerCase()))) {
+                        let cor = ag.status === 'Concluído' ? 'var(--success)' : (ag.status === 'Cancelado' ? 'var(--danger)' : 'var(--primary)');
+                        let tagPagamento = ag.pagamento ? `<br><small style="color:var(--success)">Pago via ${ag.pagamento}</small>` : '';
+                        
+                        tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${ag.data}</strong><br><small style="color:var(--text-muted)">${ag.horario}</small></td>
+                            <td>${ag.cliente || 'N/A'}</td>
+                            <td>${ag.servico} ${tagPagamento}</td>
+                            <td><span style="color:${cor}; font-weight:bold;">${ag.status || 'Pendente'}</span></td>
+                            <td>
+                                <button class="btn-acao btn-check" title="Concluir Atendimento" onclick="mudarStatus('${ag.key}', 'Concluído')"><i class="fa-solid fa-circle-check"></i></button>
+                                <button class="btn-acao btn-trash" title="Cancelar Atendimento" onclick="mudarStatus('${ag.key}', 'Cancelado')"><i class="fa-solid fa-circle-xmark"></i></button>
+                            </td>
+                        </tr>`;
+                    }
+                });
+            });
+        }
+
+        function mudarStatus(id, status) { 
+            if (status === 'Concluído') {
+                // Pergunta a forma de pagamento antes de salvar
+                const forma = prompt("Como o cliente pagou?\nDigite: 1 para PIX, 2 para Cartão, 3 para Dinheiro");
+                let metodo = "";
+                if (forma === "1") metodo = "PIX";
+                else if (forma === "2") metodo = "Cartão";
+                else if (forma === "3") metodo = "Dinheiro";
+                else return alert("Ação cancelada. Agendamento continua pendente.");
+
+                database.ref('agendamentos/' + id).update({ status: status, pagamento: metodo });
+            } else {
+                database.ref('agendamentos/' + id).update({ status: status }); 
+            }
+        }
+
+        // ==========================================
+        // NOVO: CRM (CLIENTES)
+        // ==========================================
+        function carregarClientes() {
+            database.ref('clientes').on('value', snap => {
+                const tbody = document.getElementById('tabela-clientes');
+                tbody.innerHTML = "";
+                if(!snap.exists()) { tbody.innerHTML = "<tr><td colspan='4'>Nenhum cliente cadastrado.</td></tr>"; return; }
+                
+                snap.forEach(child => {
+                    const cli = child.val();
+                    const zap = cli.whatsapp || '';
+                    const linkZap = zap ? `https://api.whatsapp.com/send?phone=55${zap.replace(/\D/g, '')}` : '#';
+                    
+                    tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${cli.nome || 'N/A'}</strong></td>
+                        <td>${zap}</td>
+                        <td>${cli.dataCadastro || 'N/A'}</td>
+                        <td>
+                            <a href="${linkZap}" target="_blank" style="color: #25D366; text-decoration: none; font-size: 1.2rem; margin-right: 10px;"><i class="fa-brands fa-whatsapp"></i> Chamar</a>
+                        </td>
+                    </tr>`;
+                });
+            });
+        }
+
+        // ==========================================
+        // NOVO: LOJA / ESTOQUE
+        // ==========================================
+        function salvarProdutoLoja() {
+            const nome = document.getElementById('prod-nome').value;
+            const preco = document.getElementById('prod-preco').value;
+            const img = document.getElementById('prod-img').value;
+            
+            if(!nome || !preco) return alert("Preencha nome e preço!");
+            
+            database.ref('produtos').push({
+                nome: nome,
+                preco: parseFloat(preco),
+                imagem: img || 'https://via.placeholder.com/150'
+            }).then(() => {
+                document.getElementById('prod-nome').value = "";
+                document.getElementById('prod-preco').value = "";
+                document.getElementById('prod-img').value = "";
+                alert("Produto adicionado à loja!");
+            });
+        }
+
+        function carregarProdutosLoja() {
+            database.ref('produtos').on('value', snap => {
+                const div = document.getElementById('lista-produtos-loja'); 
+                div.innerHTML = "";
+                snap.forEach(c => {
+                    const p = c.val();
+                    div.innerHTML += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg-body); border-radius:6px; margin-bottom:10px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${p.imagem}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">
+                            <div>
+                                <strong style="display:block;">${p.nome}</strong>
+                                <span style="color:var(--primary); font-size:0.9rem;">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
+                            </div>
+                        </div>
+                        <button class="btn-acao btn-trash" onclick="database.ref('produtos/${c.key}').remove()"><i class="fa-solid fa-trash-can"></i></button>
+                    </div>`;
+                });
+            });
+        }
+
+        // ==========================================
+        // OUTRAS MÉTRICAS E FUNÇÕES ORIGINAIS
+        // ==========================================
+        function carregarMetricas() {
+            database.ref('clientes').on('value', snap => document.getElementById('dash-cli').innerText = snap.exists() ? snap.numChildren() : 0);
+            
+            database.ref('agendamentos').on('value', snap => {
+                let pendentes = 0, concluidos = 0, faturamento = 0;
+                if (snap.exists()) {
+                    snap.forEach(c => {
+                        const ag = c.val();
+                        if (ag.status === 'Pendente') pendentes++;
+                        if (ag.status === 'Concluído') {
+                            concluidos++;
+                            const vals = ag.servico ? ag.servico.match(/R\$ \d+,\d{2}/g) : null;
+                            if (vals) vals.forEach(v => faturamento += parseFloat(v.replace('R$ ','').replace(',','.')));
+                        }
+                    });
+                }
+                document.getElementById('dash-fat').innerText = "R$ " + faturamento.toFixed(2).replace('.', ',');
+                
+                const ctx = document.getElementById('graficoAgendamentos').getContext('2d');
+                if(meuGrafico) meuGrafico.destroy();
+                meuGrafico = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: ['Pendentes', 'Concluídos'], datasets: [{ data: [pendentes, concluidos], backgroundColor: ['#d4af37', '#71dd37'], borderRadius: 5 }] },
+                    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#333' } }, x: { grid: { display: false } } } }
+                });
+            });
+        }
+
+        function carregarEspera() {
+            database.ref('lista_espera').on('value', snap => {
+                const tbody = document.getElementById('tabela-espera'); tbody.innerHTML = "";
+                snap.forEach(c => {
+                    const e = c.val();
+                    tbody.innerHTML += `<tr><td>${e.data.split('-').reverse().join('/')}</td><td>${e.cliente}</td><td>${e.whatsapp}</td>
+                    <td><button class="btn-acao btn-trash" onclick="database.ref('lista_espera/${c.key}').remove()"><i class="fa-solid fa-trash-can"></i></button></td></tr>`;
+                });
+            });
+        }
+
+        function carregarFeedbacks() {
+            database.ref('avaliacoes').on('value', snap => {
+                const div = document.getElementById('lista-feedbacks'); div.innerHTML = "";
+                snap.forEach(c => {
+                    const f = c.val();
+                    div.innerHTML += `
+                    <div class="col card" style="min-width: 250px;">
+                        <p style="color:var(--primary); margin-bottom:10px;">${"⭐".repeat(f.nota)}</p>
+                        <p style="font-style:italic; margin-bottom:10px;">"${f.comentario}"</p>
+                        <small style="color:var(--text-muted);">- ${f.cliente} (Atendido por ${f.barbeiro})</small>
+                    </div>`;
+                });
+            });
+        }
+
+        function salvarBloqueio() {
+            const d = document.getElementById('data-block').value;
+            if(d) database.ref('bloqueios').push({ data: d }).then(() => document.getElementById('data-block').value = '');
+        }
+        function carregarBloqueios() {
+            database.ref('bloqueios').on('value', snap => {
+                const div = document.getElementById('lista-bloqueios'); div.innerHTML = "";
+                snap.forEach(c => div.innerHTML += `<p style="margin-bottom:8px;">❌ ${c.val().data.split('-').reverse().join('/')} <button class="btn-acao btn-trash" style="font-size:1rem; margin-left:10px;" onclick="database.ref('bloqueios/${c.key}').remove()"><i class="fa-solid fa-xmark"></i></button></p>`);
+            });
+        }
+
+        function salvarBarbeiro() { const n = document.getElementById('barb-nome').value; const i = document.getElementById('barb-img').value; if(n&&i) database.ref('barbeiros').push({nome:n, foto:i}); }
+        function salvarServico() { const n = document.getElementById('serv-nome').value; const p = document.getElementById('serv-preco').value; const d = document.getElementById('serv-desc').value; if(n&&p) database.ref('servicos').push({nome:n, preco:parseFloat(p), descricao:d}); }
+        function carregarConfiguracoes() {
+            database.ref('barbeiros').on('value', snap => {
+                const div = document.getElementById('lista-barbeiros-admin'); div.innerHTML = "";
+                snap.forEach(c => div.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:var(--bg-body); border-radius:6px; margin-bottom:5px;">${c.val().nome} <button class="btn-acao btn-trash" onclick="database.ref('barbeiros/${c.key}').remove()"><i class="fa-solid fa-trash-can"></i></button></div>`);
+            });
+            database.ref('servicos').on('value', snap => {
+                const div = document.getElementById('lista-servicos-admin'); div.innerHTML = "";
+                snap.forEach(c => div.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; background:var(--bg-body); border-radius:6px; margin-bottom:5px;">${c.val().nome} <button class="btn-acao btn-trash" onclick="database.ref('servicos/${c.key}').remove()"><i class="fa-solid fa-trash-can"></i></button></div>`);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -2,331 +2,152 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src * wss:;">
-    <title>JLukas ERP - Gestão de Barbearia</title>
-    
-    <link rel="stylesheet" href="admin.css">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <title>JLukas Barber Shop - Oficial</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="firebase-init.js"></script>
 </head>
 <body>
 
-    <div id="tela-login">
-        <div class="login-box">
-            <i class="fa-solid fa-shield-halved"></i>
-            <h2>Acesso Restrito</h2>
-            <p>Plataforma exclusiva para colaboradores e gestão.</p>
-            <input type="email" id="email-login" placeholder="E-mail corporativo">
-            <input type="password" id="senha-login" placeholder="Sua senha">
-            <button onclick="fazerLogin()"><i class="fa-solid fa-right-to-bracket"></i> ENTRAR</button>
-        </div>
-    </div>
-
-    <nav class="sidebar" id="sidebar">
-        <div class="brand">
-            <i class="fa-solid fa-crown"></i> JLUKAS.ERP
-        </div>
-        
-        <div class="menu-wrapper">
-            <div class="menu-group">
-                <div class="menu-title">Meu Espaço</div>
-                <div class="nav-item active" onclick="navegar('view-colab-dash', this, 'Meu Desempenho')">
-                    <i class="fa-solid fa-chart-pie"></i> Visão Geral
-                </div>
-                <div class="nav-item" onclick="navegar('view-agenda', this, 'Gestão de Cortes')">
-                    <i class="fa-regular fa-calendar-check"></i> Minha Agenda
-                </div>
-                <div class="nav-item" onclick="navegar('view-financeiro', this, 'Meus Ganhos')">
-                    <i class="fa-solid fa-wallet"></i> Financeiro
-                </div>
-                <div class="nav-item" onclick="navegar('view-clientes-colab', this, 'Histórico de Clientes')">
-                    <i class="fa-solid fa-users"></i> Meus Clientes
-                </div>
-            </div>
-
-            <div class="menu-group role-admin">
-                <div class="menu-title">Administração Global</div>
-                <div class="nav-item" onclick="navegar('view-dashboard', this, 'Visão Estratégica')">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard BI
-                </div>
-                <div class="nav-item" onclick="navegar('view-equipe', this, 'Gestão de Equipe')">
-                    <i class="fa-solid fa-users-gear"></i> Equipe & Barbeiros
-                </div>
-                <div class="nav-item" onclick="navegar('view-catalogo', this, 'Serviços e Preços')">
-                    <i class="fa-solid fa-scissors"></i> Serviços
-                </div>
-                <div class="nav-item" onclick="navegar('view-loja', this, 'Gestão da Loja')">
-                    <i class="fa-solid fa-store"></i> Loja & Produtos
-                </div>
-                <div class="nav-item" onclick="navegar('view-feedback', this, 'Relacionamento')">
-                    <i class="fa-regular fa-star"></i> Avaliações
-                </div>
-                <div class="nav-item" onclick="navegar('view-config', this, 'Configurações do Sistema')">
-                    <i class="fa-solid fa-sliders"></i> Ajustes / Feriados
-                </div>
-            </div>
-        </div>
-
-        <div class="user-profile">
-            <div class="user-info">
-                <div class="user-avatar" id="avatar-letra">A</div>
-                <div>
-                    <h4 style="font-size: 0.9rem; color: var(--text-title);" id="txt-nome-usuario">Usuário</h4>
-                    <span style="font-size: 0.75rem; color: var(--primary);" id="txt-cargo-usuario">Cargo</span>
-                </div>
-            </div>
-            <button onclick="logoutAdmin()" style="background:none; border:none; color:var(--danger); font-size:1.2rem; cursor:pointer;" title="Sair"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
-        </div>
+    <nav class="navbar">
+        <div class="logo"><a href="index.html" style="color: inherit; text-decoration: none;">JLukas Barber Shop</a></div>
+        <div class="menu-toggle" id="mobile-menu">☰</div>
+        <ul class="nav-links">
+            <li><a href="#home">Início</a></li>
+            <li><a href="#servicos">Serviços</a></li>
+            <li><a href="produtos.html">🛒Loja</a></li>
+            <li><a href="login.html" id="nav-conta" style="background: var(--dourado); color: black; padding: 10px 20px; border-radius: 5px; font-weight: bold;">Minha Conta</a></li>
+            <li><button id="nav-logout" onclick="fazerLogout()" style="display: none; background: transparent; color: var(--dourado); border: 1px solid var(--dourado); padding: 8px 15px; border-radius: 5px; cursor: pointer;">Sair</button></li>
+        </ul>
     </nav>
 
-    <main class="main-wrapper" id="main-content" style="display: none;">
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>O Padrão Ouro em Barbearia</h1>
+            <p>Estilo, precisão e uma experiência premium para o homem moderno.</p>
+            <a href="agendar.html" class="btn-principal">RESERVE SEU HORÁRIO</a>
+        </div>
+    </section>
+
+    <section id="servicos">
+        <h2 class="titulo-secao">Nossos Serviços</h2>
+        <div id="dinamico-servicos" class="cards-container">
+            <p style="color: var(--dourado);">A carregar serviços...</p>
+        </div>
+    </section>
+
+    <section id="galeria" style="background: linear-gradient(to bottom, var(--bg-fundo), #050505); padding-top: 60px;">
+        <h2 class="titulo-secao">Lookbook</h2>
+        <p style="color: var(--texto-cinza); text-align: center; max-width: 600px; margin: -50px auto 40px; font-weight: 300;">Inspire-se nos trabalhos da nossa equipa. O padrão de excelência em cada detalhe.</p>
         
-        <header class="topbar">
-            <h1 id="page-title">Meu Desempenho</h1>
-            <div style="color: var(--text-muted); font-size: 0.9rem;">
-                <i class="fa-regular fa-clock"></i> <span id="data-atual"></span>
+        <div id="dinamico-galeria" class="cards-container">
+            <p style="color: var(--dourado); text-align: center; width: 100%;">A carregar galeria...</p>
+        </div>
+    </section>
+
+    <section id="faq" class="secao-faq">
+        <h2 class="titulo-secao">Dúvidas Frequentes</h2>
+        <div class="faq-container">
+            <div class="faq-item">
+                <h3>Aceitam cartão ou PIX?</h3>
+                <p>Sim! Aceitamos cartões de débito/crédito e pagamentos via PIX diretamente no balcão.</p>
             </div>
-        </header>
-
-        <div class="content">
-
-            <div id="view-colab-dash" class="view-section active">
-                <div class="grid-cards" style="grid-template-columns: repeat(3, 1fr);">
-                    <div class="card stat-card" style="padding: 20px;">
-                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">CORTES HOJE</h3><div class="value" id="colab-cortes-hoje" style="font-size: 2rem; color: var(--primary);">0</div></div>
-                        <i class="fa-solid fa-scissors" style="font-size: 2rem; color: var(--border);"></i>
-                    </div>
-                    <div class="card stat-card" style="padding: 20px;">
-                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">AVALIAÇÃO MÉDIA</h3><div class="value" id="colab-estrelas" style="font-size: 2rem; color: var(--warning);">⭐ 5.0</div></div>
-                    </div>
-                    <div class="card stat-card" style="padding: 20px; border-color: var(--success);">
-                        <div><h3 style="font-size: 0.75rem; color: var(--success);">ESTIMATIVA DE GANHO HOJE</h3><div class="value" id="colab-ganho-hoje" style="font-size: 2rem; color: var(--success);">R$ 0,00</div></div>
-                    </div>
-                </div>
-
-                <div class="grid-cards" style="grid-template-columns: 2fr 1fr;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px; color: var(--text-title); border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-                            <i class="fa-solid fa-bullhorn" style="color: var(--primary);"></i> Mural da Barbearia
-                        </h3>
-                        <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
-                            <h4 style="color: white; margin-bottom: 5px;">Aviso da Gerência</h4>
-                            <p style="color: var(--text-muted); font-size: 0.9rem;">Lembrem-se de esterilizar as tesouras após cada corte e oferecer a pomada da loja aos clientes. Bom trabalho equipe!</p>
-                        </div>
-                    </div>
-                    <div class="card" style="background: linear-gradient(145deg, #1e293b, #0f172a); border-color: var(--primary);">
-                        <h3 style="margin-bottom: 15px; color: var(--primary); text-align: center;">Seu Próximo Cliente</h3>
-                        <div id="colab-proximo-cliente" style="text-align: center;">
-                            <i class="fa-solid fa-user-clock" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 15px;"></i>
-                            <h4 style="font-size: 1.2rem; color: white;" id="next-nome">Buscando...</h4>
-                            <p style="color: var(--primary); margin: 5px 0;" id="next-hora">--:--</p>
-                            <span class="badge badge-pendente" id="next-servico">Aguarde</span>
-                        </div>
-                    </div>
-                </div>
+            <div class="faq-item">
+                <h3>Preciso mesmo marcar horário?</h3>
+                <p>Recomendamos o agendamento para evitar esperas, mas atendemos por ordem de chegada conforme a disponibilidade dos barbeiros.</p>
             </div>
-
-            <div id="view-clientes-colab" class="view-section">
-                <div class="card">
-                    <h3 style="margin-bottom: 20px;">Gestão de Clientes (CRM & Fidelização)</h3>
-                    <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">Acompanha a frequência dos teus clientes. O sistema conta automaticamente os cortes concluídos. Clientes com 5 ou mais cortes ganham o selo VIP! 🌟</p>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Nome do Cliente</th>
-                                    <th>WhatsApp</th>
-                                    <th>Data de Registo</th>
-                                    <th style="text-align: center;">Cortes Realizados</th>
-                                    <th>Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tb-clientes">
-                                <tr><td colspan="5" style="text-align: center;">A carregar base de dados...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-agenda" class="view-section">
-                <div class="card table-container">
-                    <table>
-                        <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Serviço</th><th>Status</th><th>Ações</th></tr></thead>
-                        <tbody id="tb-agenda"><tr><td colspan="5" style="text-align: center;">Carregando...</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="view-financeiro" class="view-section">
-                <div class="grid-cards">
-                    <div class="card stat-card">
-                        <div class="stat-info"><h3>Produção Bruta (Mês)</h3><div class="value" id="val-prod-bruta">R$ 0,00</div></div>
-                        <div class="stat-icon icon-gold"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-                    </div>
-                    <div class="card stat-card" style="border-color: var(--success);">
-                        <div class="stat-info"><h3>Sua Comissão (Líquido)</h3><div class="value" style="color: var(--success);" id="val-comissao">R$ 0,00</div></div>
-                        <div class="stat-icon icon-green"><i class="fa-solid fa-piggy-bank"></i></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-dashboard" class="view-section admin-only">
-                <div class="grid-cards" style="grid-template-columns: repeat(4, 1fr);">
-                    <div class="card stat-card" style="padding: 20px;">
-                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">FATURAMENTO BRUTO</h3><div class="value" id="dash-fat" style="font-size: 1.5rem; color: var(--success);">R$ 0,00</div></div>
-                    </div>
-                    <div class="card stat-card" style="padding: 20px; border-color: var(--danger);">
-                        <div><h3 style="font-size: 0.75rem; color: var(--danger);">DESPESAS / CUSTOS</h3><div class="value" id="dash-despesas" style="font-size: 1.5rem; color: var(--danger);">R$ 0,00</div></div>
-                    </div>
-                    <div class="card stat-card" style="padding: 20px; border-color: var(--primary); background: rgba(212, 175, 55, 0.05);">
-                        <div><h3 style="font-size: 0.75rem; color: var(--primary);">LUCRO LÍQUIDO</h3><div class="value" id="dash-lucro" style="font-size: 1.5rem; color: var(--primary); font-weight: bold;">R$ 0,00</div></div>
-                    </div>
-                    <div class="card stat-card" style="padding: 20px;">
-                        <div><h3 style="font-size: 0.75rem; color: var(--text-muted);">TOTAL DE CLIENTES</h3><div class="value" id="dash-cli" style="font-size: 1.5rem;">0</div></div>
-                    </div>
-                </div>
-
-                <div class="grid-cards" style="grid-template-columns: 2fr 1fr;">
-                    <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                    <button class="btn-action" style="background: var(--bg-surface-hover); color: var(--text-title); border: 1px solid var(--border);" onclick="exportarRelatorioCSV()">
-                        <i class="fa-solid fa-file-export"></i> Exportar Relatório (CSV)
-                    </button>
-                </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem; color: var(--danger); border-bottom: 1px solid var(--border); padding-bottom: 10px;">Lançar Despesa</h3>
-                        <div class="form-group">
-                            <label>Descrição do Gasto</label>
-                            <input type="text" id="add-desp-desc" placeholder="Ex: Conta de Luz, Pomadas...">
-                        </div>
-                        <div class="form-group">
-                            <label>Valor (R$)</label>
-                            <input type="number" id="add-desp-valor" placeholder="Ex: 150.00">
-                        </div>
-                        <button class="btn-action" style="width: 100%; justify-content: center; background: var(--danger); color: white; border: none;" onclick="cadastrarDespesa()">
-                            <i class="fa-solid fa-arrow-trend-down"></i> Registar Saída
-                        </button>
-                        
-                        <h4 style="margin-top: 20px; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-muted);">Últimas Despesas</h4>
-                        <div id="lista-despesas" style="max-height: 120px; overflow-y: auto; font-size: 0.85rem;">
-                            </div>
-                    </div>
-                </div>
-            </div>
-
-                <div class="grid-cards" style="grid-template-columns: 2fr 1fr;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem;">Análise Financeira (Real vs Estimado)</h3>
-                        <div style="position: relative; height: 250px; width: 100%;"><canvas id="chartFinanceiro"></canvas></div>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 15px; font-size: 1rem;">Volume Operacional</h3>
-                        <div style="position: relative; height: 250px; width: 100%;"><canvas id="chartVolume"></canvas></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-equipe" class="view-section admin-only">
-                <div class="grid-cards" style="grid-template-columns: 1fr 2fr;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Novo Colaborador</h3>
-                        <div class="form-group"><label>Nome de Exibição</label><input type="text" id="add-barb-nome" placeholder="Ex: Lucas Silva"></div>
-                        <div class="form-group"><label>E-mail de Login</label><input type="email" id="add-barb-email" placeholder="lucas@barbearia.com"></div>
-                        <div class="form-group"><label>Foto de Perfil (URL)</label><input type="text" id="add-barb-foto" placeholder="https://link-da-foto.jpg"></div>
-                        <button class="btn-action" style="width: 100%; justify-content: center;" onclick="cadastrarBarbeiro()"><i class="fa-solid fa-user-plus"></i> Registrar Barbeiro</button>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 20px;">Equipe Ativa</h3>
-                        <div id="lista-equipe-admin" style="display: flex; flex-direction: column; gap: 10px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-catalogo" class="view-section admin-only">
-                <div class="grid-cards" style="grid-template-columns: 1fr 1.5fr;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 20px;">Adicionar Serviço</h3>
-                        <div class="form-group"><label>Nome do Serviço</label><input type="text" id="add-serv-nome" placeholder="Ex: Degradê"></div>
-                        <div class="form-group"><label>Preço (R$)</label><input type="number" id="add-serv-preco" placeholder="35.00"></div>
-                        <div class="form-group"><label>Descrição Breve</label><input type="text" id="add-serv-desc" placeholder="Corte com toalha..."></div>
-                        <div class="form-group"><label>URL da Imagem</label><input type="text" id="add-serv-img" placeholder="https://..."></div>
-                        <button class="btn-action" style="width:100%; justify-content:center;" onclick="cadastrarServico()"><i class="fa-solid fa-plus"></i> Guardar Serviço</button>
-                    </div>
-                    <div class="card table-container" style="padding: 0;">
-                        <table><thead><tr><th>Serviço</th><th>Preço</th><th>Ação</th></tr></thead><tbody id="tb-servicos"></tbody></table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-loja" class="view-section admin-only">
-                <div class="grid-cards" style="grid-template-columns: 1fr 2fr;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Novo Produto</h3>
-                        <div class="form-group"><label>Nome do Produto</label><input type="text" id="add-prod-nome" placeholder="Ex: Pomada Modeladora"></div>
-                        <div class="form-group"><label>Preço (R$)</label><input type="number" id="add-prod-preco" placeholder="45.00"></div>
-                        <div class="form-group"><label>Quantidade Inicial (Estoque)</label><input type="number" id="add-prod-estoque" placeholder="Ex: 10" value="0"></div>
-                        <div class="form-group"><label>URL da Imagem</label><input type="text" id="add-prod-img" placeholder="https://link-da-imagem.jpg"></div>
-                        <button class="btn-action" style="width:100%; justify-content:center;" onclick="cadastrarProduto()"><i class="fa-solid fa-box"></i> Adicionar à Loja</button>
-                    </div>
-                    <div class="card table-container" style="padding: 0;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Produto</th>
-                                    <th>Preço</th>
-                                    <th>Estoque Atual</th>
-                                    <th>Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tb-produtos"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-config" class="view-section admin-only">
-                <div class="grid-cards">
-                    <div class="card">
-                        <h3 style="margin-bottom: 10px;">Regras de Negócio</h3>
-                        <div class="form-group"><label>Comissão Padrão (%)</label><div style="display: flex; gap: 10px;"><input type="number" id="config-comissao" value="50"><button class="btn-action" onclick="salvarConfigComissao()">Guardar</button></div></div>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 10px;">Fechar Barbearia</h3>
-                        <div class="form-group" style="display: flex; gap: 10px;"><input type="date" id="config-data-block"><button class="btn-action" onclick="bloquearData()"><i class="fa-solid fa-lock"></i> Bloquear</button></div>
-                        <div id="lista-datas-bloqueadas" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-feedback" class="view-section admin-only">
-                <div class="card">
-                    <h3 style="margin-bottom: 20px;">Últimas Avaliações</h3>
-                    <div id="lista-avaliacoes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;"></div>
-                </div>
+            <div class="faq-item">
+                <h3>Onde posso comprar produtos?</h3>
+                <p>Disponibilizamos nossos produtos pela loja presente no Site.</p>
             </div>
         </div>
-    </main>
+    </section>
 
-    <div id="modal-editar" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
-        <div class="card" style="width: 100%; max-width: 400px; border: 1px solid var(--primary);">
-            <h3 style="margin-bottom: 20px; color: var(--primary);">Editar Agendamento</h3>
-            <input type="hidden" id="edit-id">
-            <div class="form-group"><label>Trocar Barbeiro</label><select id="edit-barbeiro" style="background: var(--bg-base); color: white;"></select></div>
-            <div class="form-group"><label>Nova Data (DD/MM/AAAA)</label><input type="text" id="edit-data" placeholder="Ex: 25/12/2026"></div>
-            <div class="form-group"><label>Novo Horário</label><input type="text" id="edit-horario" placeholder="Ex: 14:30"></div>
-            <div style="display: flex; gap: 10px; margin-top: 25px;">
-                <button class="btn-action" style="flex: 1; justify-content: center;" onclick="salvarEdicao()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
-                <button class="btn-action" style="flex: 1; justify-content: center; background: var(--danger); color: white;" onclick="document.getElementById('modal-editar').style.display='none'">Cancelar</button>
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo">JLUKAS<span>.</span></div>
+                <p style="color: var(--texto-cinza); font-size: 0.95rem; font-weight: 300; margin-top: 15px; max-width: 250px; line-height: 1.8;">
+                    A excelência em cada detalhe. Elevando a tradição da barbearia a um padrão de luxo.
+                </p>
+                <div class="selo-seguranca" style="margin-top: 15px;">
+                    <svg viewBox="0 0 24 24" style="width: 20px; vertical-align: middle; fill: var(--sucesso);"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                    <span style="color: var(--sucesso); font-size: 0.85rem; vertical-align: middle; margin-left: 5px;">Ambiente 100% Seguro (SSL)</span>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4>Navegação</h4>
+                <a href="#home">Início</a>
+                <a href="#servicos">Nossos Serviços</a>
+                <a href="produtos.html">Loja Online</a>
+            </div>
+            <div class="footer-links">
+                <h4>Atendimento</h4>
+                <a href="agendar.html">Agendar Horário</a>
+                <a href="login.html">Minha Conta</a>
+                
+                <a href="https://adminsitebarbearia.netlify.app/" target="_blank" style="color: var(--dourado); font-weight: bold; display: flex; align-items: center; gap: 5px; margin-top: 15px;">
+                    <svg viewBox="0 0 24 24" style="width: 15px; fill: var(--dourado);"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+                    JLukas Backoffice PRO
+                </a>
             </div>
         </div>
-    </div>
+        <p style="text-align: center; margin-top: 30px; border-top: 1px solid var(--borda); padding-top: 20px; color: var(--texto-cinza);">&copy; 2026 JLukas Barber Shop. Todos os direitos reservados.</p>
+    </footer>
 
-    <script src="admin.js" defer></script>
+    <script>
+        // 1. CARREGAR SERVIÇOS DO BANCO
+        database.ref('servicos').on('value', snap => {
+            const container = document.getElementById('dinamico-servicos');
+            container.innerHTML = "";
+            if(!snap.exists()) { container.innerHTML = "<p style='color:var(--texto-cinza)'>Nenhum serviço cadastrado.</p>"; return; }
+            
+            snap.forEach(child => {
+                const s = child.val();
+                container.innerHTML += `
+                <div class="card-item">
+                    <img src="${s.imagem}" alt="${s.nome}" style="width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
+                    <div>
+                        <h3 style="color: var(--branco); font-size: 1.5rem; margin-bottom: 10px;">${s.nome}</h3>
+                        <p style="color: var(--texto-cinza); font-size: 0.95rem; margin-bottom: 20px;">${s.descricao}</p>
+                    </div>
+                    <span class="preco-tag">R$ ${parseFloat(s.preco).toFixed(2).replace('.', ',')}</span>
+                </div>`;
+            });
+        });
+
+        // 2. CARREGAR GALERIA DO BANCO
+        database.ref('galeria').on('value', snap => {
+            const container = document.getElementById('dinamico-galeria');
+            container.innerHTML = "";
+            if(!snap.exists()) { container.innerHTML = "<p style='color:var(--texto-cinza)'>Nenhuma foto na galeria.</p>"; return; }
+
+            snap.forEach(child => {
+                const g = child.val();
+                container.innerHTML += `
+                <div class="card-item">
+                    <img src="${g.imagem}" alt="${g.titulo}" style="width: 100%; height: auto; max-height: 400px; object-fit: contain; border-radius: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.3);">
+                    <div>
+                        <h3 style="color: var(--branco); font-size: 1.5rem; margin-bottom: 10px;">${g.titulo}</h3>
+                        <p style="color: var(--texto-cinza); font-size: 0.95rem; margin-bottom: 20px;">${g.descricao}</p>
+                    </div>
+                </div>`;
+            });
+        });
+        
+        // 3. MENU MOBILE TOGGLE
+        const mobileBtn = document.getElementById('mobile-menu');
+        if(mobileBtn) {
+            mobileBtn.addEventListener('click', () => {
+                document.querySelector('.nav-links').classList.toggle('active');
+            });
+        }
+    </script>
+    <script src="script.js"></script>
 </body>
 </html>
